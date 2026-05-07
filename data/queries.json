@@ -1,0 +1,106 @@
+[
+  {
+    "question": "how much did we sell overall",
+    "intent": "calculate total revenue",
+    "business_context": "sales refers to finalized transactions from invoices, not orders",
+    "tables_used": ["OINV"],
+    "embedding_text": "total sales revenue overall income total business money invoice final sales sum revenue",
+    "sql": "SELECT SUM(T0.\"DocTotal\") AS \"TotalSales\" FROM OINV T0"
+  },
+  {
+    "question": "how much each customer has bought",
+    "intent": "customer-wise revenue aggregation",
+    "business_context": "customer sales must come from invoice data, not orders",
+    "tables_used": ["OINV", "OCRD"],
+    "embedding_text": "sales per customer revenue per customer customer wise sales total purchase per customer customer billing",
+    "sql": "SELECT T1.\"CardName\", SUM(T0.\"DocTotal\") AS \"TotalSales\" FROM OINV T0 JOIN OCRD T1 ON T0.\"CardCode\" = T1.\"CardCode\" GROUP BY T1.\"CardName\""
+  },
+  {
+    "question": "which products are selling the most",
+    "intent": "item-wise sales analysis",
+    "business_context": "product sales come from invoice line items",
+    "tables_used": ["INV1", "OITM"],
+    "embedding_text": "top selling products best selling items highest revenue items item wise sales product ranking",
+    "sql": "SELECT T1.\"ItemName\", SUM(T0.\"LineTotal\") AS \"TotalSales\" FROM INV1 T0 JOIN OITM T1 ON T0.\"ItemCode\" = T1.\"ItemCode\" GROUP BY T1.\"ItemName\" ORDER BY \"TotalSales\" DESC"
+  },
+  {
+    "question": "how many orders did we receive",
+    "intent": "count number of sales orders",
+    "business_context": "orders represent intent, not actual sales or revenue",
+    "tables_used": ["ORDR"],
+    "embedding_text": "total orders count number of orders received sales orders count how many orders",
+    "sql": "SELECT COUNT(*) AS \"TotalOrders\" FROM ORDR"
+  },
+  {
+    "question": "show me orders that are still open",
+    "intent": "retrieve open sales orders",
+    "business_context": "open orders are those not yet fulfilled or closed",
+    "tables_used": ["ORDR"],
+    "embedding_text": "pending orders open orders not completed orders remaining orders unfulfilled orders",
+    "sql": "SELECT T0.\"DocNum\", T0.\"CardCode\", T0.\"DocTotal\" FROM ORDR T0 WHERE T0.\"DocStatus\" = 'O'"
+  },
+  {
+    "question": "compare orders and actual sales",
+    "intent": "compare order value vs actual revenue",
+    "business_context": "orders come from ORDR, actual sales come from OINV",
+    "tables_used": ["ORDR", "OINV"],
+    "embedding_text": "orders vs sales comparison pipeline vs revenue order value vs actual sales order invoice difference",
+    "sql": "SELECT (SELECT SUM(\"DocTotal\") FROM ORDR) AS \"TotalOrders\", (SELECT SUM(\"DocTotal\") FROM OINV) AS \"TotalSales\" FROM DUMMY"
+  },
+  {
+    "question": "customers who placed orders but never bought",
+    "intent": "find customers with orders but no invoices",
+    "business_context": "orders without invoices indicate no completed sales",
+    "tables_used": ["ORDR", "OINV"],
+    "embedding_text": "customers ordered but not purchased no sales customers no invoice customers never converted",
+    "sql": "SELECT DISTINCT T0.\"CardCode\" FROM ORDR T0 WHERE T0.\"CardCode\" NOT IN (SELECT T1.\"CardCode\" FROM OINV T1)"
+  },
+  {
+    "question": "difference between ordered and sold quantity for items",
+    "intent": "compare ordered vs sold quantities",
+    "business_context": "ordered quantity from RDR1, sold quantity from INV1",
+    "tables_used": ["RDR1", "INV1"],
+    "embedding_text": "ordered vs sold quantity item comparison order quantity vs sales quantity fulfilled quantity gap",
+    "sql": "SELECT T0.\"ItemCode\", SUM(T0.\"Quantity\") AS \"OrderedQty\", IFNULL((SELECT SUM(T1.\"Quantity\") FROM INV1 T1 WHERE T1.\"ItemCode\" = T0.\"ItemCode\"),0) AS \"SoldQty\" FROM RDR1 T0 GROUP BY T0.\"ItemCode\""
+  },
+  {
+    "question": "how many invoices were created today",
+    "intent": "count invoices for today",
+    "business_context": "invoice count for current date from OINV table filtered by today's date",
+    "tables_used": ["OINV"],
+    "embedding_text": "invoice count today daily invoices number of invoices today total invoices current date how many invoices today",
+    "sql": "SELECT COUNT(*) AS \"InvoiceCount\" FROM OINV T0 WHERE T0.\"DocDate\" = CURRENT_DATE"
+  },
+  {
+    "question": "how many invoices were raised this week",
+    "intent": "count invoices for current week",
+    "business_context": "weekly invoice count from OINV filtered by date range",
+    "tables_used": ["OINV"],
+    "embedding_text": "invoice count this week weekly invoices number of invoices week total invoices date range",
+    "sql": "SELECT COUNT(*) AS \"WeeklyInvoiceCount\" FROM OINV T0 WHERE T0.\"DocDate\" >= DATEADD(DAY, -7, CURRENT_DATE)"
+  },
+  {
+    "question": "what is the total invoice amount for today",
+    "intent": "sum invoice value for today",
+    "business_context": "total revenue from invoices raised on current date",
+    "tables_used": ["OINV"],
+    "embedding_text": "total invoice amount today daily revenue today invoice value current date sales today",
+    "sql": "SELECT SUM(T0.\"DocTotal\") AS \"TodaySales\" FROM OINV T0 WHERE T0.\"DocDate\" = CURRENT_DATE"
+  },
+  {
+    "question": "show invoices created between two dates",
+    "intent": "filter invoices by date range",
+    "business_context": "invoices filtered by DocDate between start and end date",
+    "tables_used": ["OINV"],
+    "embedding_text": "invoices between dates date range invoice filter invoice period from date to date",
+    "sql": "SELECT T0.\"DocNum\", T0.\"CardName\", T0.\"DocDate\", T0.\"DocTotal\" FROM OINV T0 WHERE T0.\"DocDate\" BETWEEN '[StartDate]' AND '[EndDate]'"
+  },
+  {
+    "question": "how many orders were placed today",
+    "intent": "count orders for today",
+    "business_context": "order count filtered by today's date from ORDR table",
+    "tables_used": ["ORDR"],
+    "embedding_text": "orders today count daily orders how many orders today number of orders current date",
+    "sql": "SELECT COUNT(*) AS \"OrdersToday\" FROM ORDR T0 WHERE T0.\"DocDate\" = CURRENT_DATE"
+  }
+]

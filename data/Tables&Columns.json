@@ -1,0 +1,106 @@
+{
+  "ORDR": {
+    "description": "Sales Order Header representing customer purchase intent before fulfillment",
+    "business_meaning": "order pipeline, demand planning, future sales, not actual revenue",
+    "embedding_text": "sales order customer order pipeline pending order future sales not revenue booking data order count how many orders orders today orders this week",
+    "business_terms": ["order", "booking", "pipeline", "pending", "open orders"],
+    "columns": {
+      "DocEntry": "internal unique id",
+      "DocNum": "order number",
+      "CardCode": "customer id",
+      "CardName": "customer name",
+      "DocDate": "order date",
+      "DocDueDate": "delivery date",
+      "DocTotal": "order value not revenue",
+      "DocStatus": "order status O for Open and C for closed"
+    },
+    "joins": [
+      { "table": "RDR1", "on": "ORDR.DocEntry = RDR1.DocEntry" },
+      { "table": "OCRD", "on": "ORDR.CardCode = OCRD.CardCode" }
+    ]
+  },
+
+  "OINV": {
+    "description": "Invoice table representing finalized sales transactions",
+    "business_meaning": "actual sales, revenue, completed transactions, invoice count by date",
+    "embedding_text": "sales revenue invoice billing total sales final transaction customer sales income invoice count today daily invoices number of invoices how many invoices current date invoice date filter",
+    "business_terms": ["sales", "revenue", "invoice", "billing", "invoice count", "daily invoice"],
+    "columns": {
+      "DocEntry": "internal id",
+      "DocNum": "invoice number",
+      "CardCode": "customer id",
+      "CardName": "customer name",
+      "DocDate": "invoice date used for date filtering today this week this month",
+      "DocTotal": "actual revenue amount",
+      "DocStatus": "order status O for Open and C for closed"
+    },
+    "joins": [
+      { "table": "INV1", "on": "OINV.DocEntry = INV1.DocEntry" },
+      { "table": "OCRD", "on": "OINV.CardCode = OCRD.CardCode" }
+    ]
+  },
+
+  "RDR1": {
+    "description": "Sales order line items",
+    "business_meaning": "item level order data, quantity ordered per product",
+    "embedding_text": "order items quantity ordered product order details line items order product breakdown",
+    "business_terms": ["order items", "quantity ordered"],
+    "columns": {
+      "DocEntry": "link to order",
+      "ItemCode": "product id",
+      "Quantity": "ordered quantity",
+      "LineTotal": "order value"
+    },
+    "joins": [
+      { "table": "ORDR", "on": "RDR1.DocEntry = ORDR.DocEntry" },
+      { "table": "OITM", "on": "RDR1.ItemCode = OITM.ItemCode" }
+    ]
+  },
+
+  "INV1": {
+    "description": "Invoice line items",
+    "business_meaning": "item level sales data, quantity sold per product",
+    "embedding_text": "sold items sales quantity product revenue item sales invoice line items sold quantity per product",
+    "business_terms": ["sales items", "sold quantity"],
+    "columns": {
+      "DocEntry": "link to invoice",
+      "ItemCode": "product id",
+      "Quantity": "sold quantity",
+      "LineTotal": "sales revenue"
+    },
+    "joins": [
+      { "table": "OINV", "on": "INV1.DocEntry = OINV.DocEntry" },
+      { "table": "OITM", "on": "INV1.ItemCode = OITM.ItemCode" }
+    ]
+  },
+
+  "OCRD": {
+    "description": "Customer master data",
+    "business_meaning": "customer identity and profile",
+    "embedding_text": "customer client buyer business partner customer details customer name customer id",
+    "business_terms": ["customer", "client"],
+    "columns": {
+      "CardCode": "customer id",
+      "CardName": "customer name"
+    },
+    "joins": [
+      { "table": "ORDR", "on": "OCRD.CardCode = ORDR.CardCode" },
+      { "table": "OINV", "on": "OCRD.CardCode = OINV.CardCode" }
+    ]
+  },
+
+  "OITM": {
+    "description": "Item master",
+    "business_meaning": "product information and catalog",
+    "embedding_text": "product item goods inventory item details product name product code item master catalog",
+    "business_terms": ["item", "product"],
+    "columns": {
+      "ItemCode": "product id",
+      "ItemName": "product name"
+    },
+    "joins": [
+      { "table": "RDR1", "on": "OITM.ItemCode = RDR1.ItemCode" },
+      { "table": "INV1", "on": "OITM.ItemCode = INV1.ItemCode" }
+    ]
+  }
+}
