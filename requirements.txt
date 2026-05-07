@@ -1,0 +1,7 @@
+
+chromadb
+langchain_core
+numpy
+requests
+sentence_transformers
+uuid
